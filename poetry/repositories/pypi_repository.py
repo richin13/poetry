@@ -107,6 +107,9 @@ class PyPiRepository(Repository):
 
         info = self.get_package_info(name)
 
+        if name != info["info"]["name"]:
+            name = info["info"]["name"]
+
         packages = []
 
         for version, release in info["releases"].items():

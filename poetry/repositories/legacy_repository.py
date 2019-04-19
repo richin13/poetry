@@ -119,6 +119,13 @@ class Page:
 
                 yield link
 
+    @property
+    def name(self):  # type: () -> Optional[str]
+        page_header = self._parsed.find(".//h1")
+
+        if page_header:
+            return page_header.text
+
     def links_for_version(self, version):  # type: (Version) -> Generator[Link]
         for link in self.links:
             if self.link_version(link) == version:
@@ -215,7 +222,7 @@ class LegacyRepository(PyPiRepository):
             key = "{}:{}".format(key, str(constraint))
 
         if self._cache.store("matches").has(key):
-            versions = self._cache.store("matches").get(key)
+            versions, name = self._cache.store("matches").get(key)
         else:
             page = self._get("/{}/".format(canonicalize_name(name).replace(".", "-")))
             if page is None:
@@ -229,7 +236,8 @@ class LegacyRepository(PyPiRepository):
                 if constraint.allows(version):
                     versions.append(version)
 
-            self._cache.store("matches").put(key, versions, 5)
+            name_versions = (page.name or name, versions)
+            self._cache.store("matches").put(key, name_versions, 5)
 
         for version in versions:
             package = Package(name, version)
