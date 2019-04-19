@@ -28,6 +28,10 @@ class MockRepository(PyPiRepository):
 
         if not version:
             fixture = self.JSON_FIXTURES / (name + ".json")
+            if not fixture.exists():
+                # Mock a redirect in Pypi
+                name = name.replace(".", "-")
+                fixture = self.JSON_FIXTURES / (name + ".json")
         else:
             fixture = self.JSON_FIXTURES / name / (version + ".json")
             if not fixture.exists():
@@ -47,6 +51,13 @@ class MockRepository(PyPiRepository):
 def test_find_packages():
     repo = MockRepository()
     packages = repo.find_packages("requests", "^2.18")
+
+    assert len(packages) == 5
+
+
+def test_find_packages_follows_redirects():
+    repo = MockRepository()
+    packages = repo.find_packages("pyexcel.xlsx", "^0.5.3")
 
     assert len(packages) == 5
 
